@@ -1,0 +1,26 @@
+body{
+    background-color:rgb(7, 176, 243);
+    text-align: center;
+}
+
+h1 {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#main{
+display:flex;
+flex-direction: column;
+width: 80%;
+}
+
+#main section {
+    display: flex;
+    flex-direction: row;
+    width: 80%;
+    justify-content: space-between;
+}
+
+img {
+    height: 360px;
+    width: 360px;
+}
