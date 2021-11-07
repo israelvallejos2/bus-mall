@@ -1,28 +1,28 @@
-'use strict'
+'use strict';
 
-const myContainer = document.querySelector('section');
-const myButton = document.querySelector('section + div');
-let imageOne = document.querySelector('section img:first-child');
-let imageTwo = document.querySelector('section img:nth-child(2)');
-let imageThree = document.querySelector('section img:nth-child(3)');
 const results = document.querySelector('ul');
+const viewResults = document.querySelector('button');
 
-let allProducts = [];
-let clicks = 0;
-const clicksAllowed = 25;
+let productArray = [];
+let randomNumberArray = []; 
+let numberOfRoundsForSelections = 25;
+let img1 = document.querySelector('section img:first-child');
+let img2 = document.querySelector('section img:nth-child(2)');
+let img3 = document.querySelector('section img:last-child');
+let currentSelectionRound = 0;
 
-function Product(name, fileExtension = 'jpg') {
-    this.name = name;
-    this.src = `IMG/${name}.${fileExtension}`;
-    this.likes = 0;
-    this.views = 0;
-    allProducts.push(this);
+function Product(productName, fileExtension = 'jpg') {
+    this.productName = productName;
+    this.filePathOfImage = `IMG/${productName}.${fileExtension}`;
+    this.timesShown = 0;
+    this.timesSelected = 0;
+    productArray.push(this);
 }
 
-new Product('bag', 'jpg');
+new Product('bag',);
 new Product('banana');
 new Product('bathroom');
-new Product('boots')
+new Product('boots');
 new Product('breakfast');
 new Product('bubblegum');
 new Product('chair');
@@ -33,63 +33,122 @@ new Product('pen');
 new Product('pet-sweep');
 new Product('scissors');
 new Product('shark');
-new Product('sweep');
+new Product('sweep', 'png');
 new Product('tauntaun');
 new Product('unicorn');
 new Product('water-can');
 new Product('wine-glass');
 
-function selectRandomProduct() {
-    return Math.floor(Math.random() * allProducts.length);
-}
-console.log(selectRandomProduct());
-
-function renderProduct() {
-    let ProductOne = selectRandomProduct();
-    let ProductTwo = selectRandomProduct();
-    let ProductThree = selectRandomProduct();
-    while (ProductOne === ProductTwo) {
-        ProductTwo = selectRandomProduct();
-    }
-    imageOne.src = allProducts[ProductOne].src;
-    imageOne.alt = allProducts[ProductOne].name;
-    allProducts[ProductOne].views++;
-    imageTwo.src = allProducts[ProductTwo].src;
-    imageTwo.alt = allProducts[ProductTwo].name;
-    allProducts[ProductTwo].views++;
-    imageThree.src = allProducts[ProductThree].src;
-    imageThree.alt = allProducts[ProductThree].name;
-    allProducts[ProductThree].views++;
+function randomNumber() {
+    return Math.floor(Math.random() * productArray.length); 
 }
 
-function handleProductClick(event) {
-    if (event.target === myContainer) {
-        alert('Please click on an image');
+function renderProducts() {
+    for (let i = 0; i < 3; i++) {
+        let newNumber = randomNumber();
+        while (randomNumberArray.includes(newNumber)) {  
+        }
+        randomNumberArray.push(newNumber);
     }
-    clicks++;
-    let clickedProduct = event.target.alt;
-    for (let i = 0; i < allProducts.length; i++) {
-        if (clickedProduct === allProducts[i].name) {
-            allProducts[i].likes++;
-            break;
+
+    while (randomNumberArray.length < 6) {
+        let newSetNumber = randomNumber();
+        if (!randomNumberArray.includes(newSetNumber)) {  
         }
     }
-    renderProduct();
-    if (clicks === clicksAllowed) {
-        myContainer.removeEventListener('click', handleProductClick);
-        myButton.addEventListener('click', handleButtonClick);
-        myButton.className = 'clicks-allowed';
+
+    img1.src = productArray[randomNumberArray[0]].filePathOfImage;
+    img2.src = productArray[randomNumberArray[1]].filePathOfImage;
+    img3.src = productArray[randomNumberArray[2]].filePathOfImage;
+
+    productArray[randomNumberArray[0]].timesShown++;
+    productArray[randomNumberArray[1]].timesShown++;
+    productArray[randomNumberArray[2]].timesShown++;
+
+    for (let i = 0; i < 3; i++) {
+        randomNumberArray.shift();
+    }
+
+}
+
+function renderTimesShown() {
+    for (let i = 0; i < productArray.length; i++) {
+        let li = document.createElement('li');
+        li.textContent = `${productArray[i].productName}: ${productArray[i].timesShown} view(s), ${productArray[i].timesSelected} time(s) selected.`;
+        results.appendChild(li);
     }
 }
 
-function handleButtonClick() {
-    for (let i = 0; i < allProducts.length; i++) {
-        let li = document.createElement('li')
-        li.textContent = `${allProducts[i].name} had ${allProducts[i].views} view and was clicked ${allProducts[i].likes} times.`;
-        results.appendChild(li);
-    };
+function handleClick(event) {
+
+    if (currentSelectionRound < numberOfRoundsForSelections) {
+        let itemSelected = event.target;
+
+        for (let i = 0; i < productArray.length; i++) {
+            if (itemSelected.src.endsWith(productArray[i].filePathOfImage)) {
+                productArray[i].timesSelected++;
+            }
+        }
+        renderProducts();
+    }
+
+    currentSelectionRound++;
 }
 
-renderProduct();
+function handleButton(event) {
+    numberOfRoundsForSelections++;
+    while (results.firstChild) {
+        results.removeChild(results.firstChild);
+    }
 
-myContainer.addEventListener('click', handleProductClick);
+    chartTotalResults();
+}
+
+function chartTotalResults() {
+    let arrayOfProducts = [];
+    let arrayOfTimesShown = [];
+    let arrayOfTimesSelected = [];
+    for (let i = 0; i < productArray.length; i++) {
+        arrayOfProducts.push(productArray[i].productName);
+        arrayOfTimesShown.push(productArray[i].timesShown);
+        arrayOfTimesSelected.push(productArray[i].timesSelected);
+    }
+
+    const data = {
+        labels: arrayOfProducts,
+        datasets: [
+            {
+                label: 'Viewed',
+                backgroundColor: 'rgb(150, 2, 2)',
+                borderColor: 'rgb(150, 2, 2)',
+                data: arrayOfTimesShown,
+            },
+            {
+                label: 'Selected',
+                backgroundColor: 'rgb(2, 83, 150)',
+                borderColor: 'rgb(2, 83, 150)',
+                data: arrayOfTimesSelected,
+            },
+        ]
+    };
+    const config = {
+        type: 'bar',
+        data: data,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                },
+            },
+        },
+    };
+    let resultsChart = document.getElementById('chartResults');
+    const chartResults = new Chart(resultsChart, config);
+}
+img1.addEventListener('click', handleClick);
+img2.addEventListener('click', handleClick);
+img3.addEventListener('click', handleClick);
+
+viewResults.addEventListener('click', handleButton);
+
+renderProducts();
